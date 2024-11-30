@@ -1,0 +1,11 @@
+# Ignore everything by default
+*
+
+# Allow tracking of .gitignore itself
+!.gitignore
+
+# Allow all Python files
+!*.py
+
+# Ignore specific directories or files
+origin/
