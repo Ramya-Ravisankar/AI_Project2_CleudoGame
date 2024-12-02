@@ -4,8 +4,8 @@
 # Allow tracking of .gitignore itself
 !.gitignore
 
-# Allow all Python files
-!*.py
+# Allow all Python files in all directories
+!**/*.py
 
 # Ignore specific directories or files
 origin/
