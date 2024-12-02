@@ -1,4 +1,18 @@
+"""
+This module contains the GameLogic class, which manages the core mechanics of the game.
+
+The GameLogic class handles suggestions, accusations, and game state tracking.
+"""
 class GameLogic:
+    """
+    Manages the core mechanics of the game, including suggestions and accusations.
+
+    Attributes:
+        rooms (list[Room]): List of rooms in the game.
+        characters (list[Character]): List of characters in the game.
+        weapons (list[Weapon]): List of weapons in the game.
+        solution (tuple): The correct combination of character, weapon, and room.
+    """
     def __init__(self, rooms, characters, weapons, solution):
         """
         Initialize the game logic.
@@ -61,8 +75,7 @@ class GameLogic:
             and solution_room.name == room_name
         ):
             return "Accusation correct! You've solved the murder!"
-        else:
-            return "Accusation incorrect. The mystery remains unsolved."
+        return "Accusation incorrect. The mystery remains unsolved."
 
     def get_room_connections(self, room_name):
         """
@@ -125,7 +138,7 @@ class GameLogic:
 
         # Provide feedback for incorrect accusation
         print("Accusation incorrect. Here's your feedback:")
-        for key in accused:
-            status = "correct" if accused[key] == solution[key] else "incorrect"
-            print(f"- {key.capitalize()} is {status}.")
+        for key, value in accused.items():
+            status = "correct" if value == solution[key] else "incorrect"
+            print(f"- {key} is {status}.")
         return False

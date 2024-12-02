@@ -1,3 +1,8 @@
+"""
+This is the main module for the Cluedo game.
+
+It initializes the game, processes user inputs, and manages game actions such as moving, suggesting, and accusing.
+"""
 from classes.room import Room
 from classes.character import Character
 from classes.weapon import Weapon
@@ -91,10 +96,10 @@ while True:
         if game_logic.process_accusation(accused_character, accused_weapon, accused_room):
             print("Congratulations! You solved the mystery!")
             break
-        else:
-            print("Accusation incorrect. The mystery remains unsolved.")
-            print("Game over. Try again next time!")
-            break
+
+        print("Accusation incorrect. The mystery remains unsolved.")
+        print("Game over. Try again next time!")
+        break
 
     elif action == "quit":
         # Exit the game

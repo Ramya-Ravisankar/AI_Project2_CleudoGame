@@ -1,9 +1,21 @@
+"""
+This module contains unit tests for testing movement logic in the game.
+
+The tests verify the behavior of the `GameLogic` class and `Room` connections,
+ensuring that player movement is correctly handled.
+"""
 import unittest
 from classes.room import Room
 from classes.character import Character
 from game_logic import GameLogic
 
 class TestMovement(unittest.TestCase):
+    """
+    Unit tests for movement-related functionality in the game.
+
+    These tests verify that the player can move between rooms as expected
+    and handle invalid movements appropriately.
+    """
 
     def setUp(self):
         """Set up the game environment for testing."""
@@ -28,33 +40,19 @@ class TestMovement(unittest.TestCase):
 
     def test_valid_movement(self):
         """Test if the player can move to a valid connected room."""
-        # Miss Scarlett starts in the Kitchen
         self.character.position = "Kitchen"
         available_rooms = self.game_logic.get_room_connections(self.character.position)
-
-        # Assert valid movement to a connected room
-        self.assertIn("Ballroom", available_rooms, "Ballroom should be a valid move from Kitchen.")
-
-        # Move to the Ballroom
-        if "Ballroom" in available_rooms:
-            self.character.position = "Ballroom"
-
-        self.assertEqual(self.character.position, "Ballroom", "Miss Scarlett should now be in the Ballroom.")
+        self.assertIn("Ballroom", available_rooms)
+        self.character.position = "Ballroom"
+        self.assertEqual(self.character.position, "Ballroom")
 
     def test_invalid_movement(self):
         """Test if the player cannot move to a non-connected room."""
-        # Miss Scarlett starts in the Kitchen
         self.character.position = "Kitchen"
         available_rooms = self.game_logic.get_room_connections(self.character.position)
-
-        # Assert invalid movement to a room that is not connected
-        self.assertNotIn("Library", available_rooms, "Library should not be a valid move from Kitchen.")
-
-        # Attempt to move to the Library
-        if "Library" not in available_rooms:
-            self.character.position = "Kitchen"  # Stay in the same room
-
-        self.assertEqual(self.character.position, "Kitchen", "Miss Scarlett should still be in the Kitchen.")
+        self.assertNotIn("Library", available_rooms)
+        self.character.position = "Kitchen"
+        self.assertEqual(self.character.position, "Kitchen")
 
     def test_room_connections(self):
         """Test if room connections are correctly set up."""
