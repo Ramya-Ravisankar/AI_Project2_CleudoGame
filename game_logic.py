@@ -26,7 +26,10 @@ class GameLogic:
         # Validate current room
         current_room = next((room for room in self.rooms if room.name == suggesting_player.position), None)
         if current_room is None or current_room.name != room_name:
-            return f"Invalid suggestion: You must be in the {room_name} to suggest it."
+            return (
+            f"Invalid suggestion: "
+            f"You must be in the {room_name} to suggest it."
+        )
 
         # Find the suggested character and weapon
         suggested_character = next((char for char in self.characters if char.name == character_name), None)
