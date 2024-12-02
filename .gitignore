@@ -10,5 +10,11 @@
 # Allow all Python files in all directories
 !**/*.py
 
+# Allow all json files in all directories
+!**/*.json
+
+# Allow all json files in all directories
+!**/*.md
+
 # Ignore specific directories or files
 origin/
