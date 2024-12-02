@@ -1,0 +1,8 @@
+[
+    {"name": "Kitchen", "connected_rooms": ["Ballroom"]},
+    {"name": "Ballroom", "connected_rooms": ["Kitchen", "Library"]},
+    {"name": "Library", "connected_rooms": ["Ballroom", "Study"]},
+    {"name": "Study", "connected_rooms": ["Library", "Hall"]},
+    {"name": "Hall", "connected_rooms": ["Study", "Conservatory"]},
+    {"name": "Conservatory", "connected_rooms": ["Hall"]}
+]
