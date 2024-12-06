@@ -37,7 +37,7 @@ weapons = [
 ]
 
 # Select Solution
-solution = select_solution(characters, weapons, rooms)
+solution = select_solution(characters, weapons, rooms, reveal_solution=True)
 
 # Initialize GameLogic
 game_logic = GameLogic(rooms, characters, weapons, solution)
