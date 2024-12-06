@@ -9,7 +9,6 @@ import unittest
 from classes.room import Room
 from classes.character import Character
 from classes.weapon import Weapon
-from utils.random_selection import select_solution
 from game_logic import GameLogic
 
 class TestSuggestions(unittest.TestCase):
