@@ -21,6 +21,9 @@ class Character: # pylint: disable=too-few-public-methods
         """
         self.name = name
         self.position = position
+        self.has_made_accusation = False  # Defaults to False when the character is initialized.
+        # The above tracks if the player has made an accusation.Updated to True after the character makes a false accusation.
+        self.cards = []  # Cards the player holds which can be used to refute suggestions
 
     def __eq__(self, other):
         if isinstance(other, Character):
@@ -29,3 +32,9 @@ class Character: # pylint: disable=too-few-public-methods
 
     def __hash__(self):
         return hash(self.name)  # Ensures the object is hashable
+
+    def __repr__(self):
+        """
+        String representation of the character for debugging purposes.
+        """
+        return f"Character(name='{self.name}', position='{self.position}')"
