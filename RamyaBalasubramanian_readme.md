@@ -53,9 +53,12 @@ Clone the repository :
 8. pip install -r requirements.txt [ When another person copies / clones my repository they will have to install the specfic library / dependency requirements for my project using the above command.]
 
 9. How to Run the Tests:
-   pytest <-runs the tests without pylint or coverage
-   pytest --pylint <- Runs tests with pylint static code analysis
-   pytest --pylint --cov <-Runs tests, pylint, and coverage to check if you have all your code tested.
+   pytest -v <-runs the tests without pylint or coverage, enable verbose for more detailed output
+
+   pytest --pylint -v <- Runs tests with pylint static code analysis, Enable verbose for more detailed output [ OR ]
+   pytest --pylint --pylint-rcfile=pylintrc <-Runs tests with a custom Pylint configuration file that includes verbose settings.
+
+   pytest --pylint --cov -v <-Runs tests, pylint, and coverage to check if you have all your code tested.Enable verbose for more detailed output
 
 10. Run the cleudo game:
    - `python3 main.py`
