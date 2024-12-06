@@ -13,8 +13,11 @@
 # Allow all json files in all directories
 !**/*.json
 
-# Allow all json files in all directories
+# Allow all mark down files in all directories
 !**/*.md
+
+# Allow all text files in all directories
+!**/*.txt
 
 # Ignore specific directories or files
 origin/
