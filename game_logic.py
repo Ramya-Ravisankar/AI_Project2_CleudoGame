@@ -36,14 +36,29 @@ class GameLogic:
         :param weapon_name: Name of the weapon being suggested.
         :param room_name: Name of the room being suggested.
         :return: A message summarizing the result of the suggestion.
+
+        Room Validation:
+
+The code validates that the suggesting player is in the correct room (room_name), ensuring suggestions are only made from the player's current location.
+Character and Weapon Existence Check:
+
+Ensures the suggested character and weapon exist in the game, avoiding invalid suggestions.
+Character and Weapon Movement:
+
+Moves the suggested character and weapon to the suggested room (room_name), which is a requirement for game state consistency.
+Refutation Logic:
+
+Iterates over all players except the suggesting player to check if any of them can refute the suggestion.
+Each player's cards attribute is checked to see if they hold the suggested character, weapon, or room card.
+The first player who can refute does so, and the function returns immediately with the refutation details.
+Handles No Refutation:
+
+If no players can refute the suggestion, a message is returned stating that no one could refute.
         """
         # Validate current room
         current_room = next((room for room in self.rooms if room.name == suggesting_player.position), None)
         if current_room is None or current_room.name != room_name:
-            return (
-            f"Invalid suggestion: "
-            f"You must be in the {room_name} to suggest it."
-        )
+            return f"Invalid suggestion: You must be in the {room_name} to suggest it."
 
         # Find the suggested character and weapon
         suggested_character = next((char for char in self.characters if char.name == character_name), None)
@@ -56,7 +71,25 @@ class GameLogic:
         suggested_character.position = room_name
         suggested_weapon.location = room_name
 
-        return f"Suggestion made: {character_name} with the {weapon_name} in the {room_name}."
+        # Handle refutations
+        for player in self.characters:
+            if player == suggesting_player:
+                continue  # Skip the suggesting player
+
+            # Check if the player can refute the suggestion
+            refutable_cards = []
+            if character_name in player.cards:
+                refutable_cards.append(character_name)
+            if weapon_name in player.cards:
+                refutable_cards.append(weapon_name)
+            if room_name in player.cards:
+                refutable_cards.append(room_name)
+
+            if refutable_cards:  # If the player can refute
+                return f"Suggestion refuted by {player.name} with {refutable_cards[0]}."
+
+        # No refutations found
+        return f"Suggestion made: {character_name} with the {weapon_name} in the {room_name}. No one could refute."
 
     def check_solution(self, character_name, weapon_name, room_name):
         """
@@ -106,39 +139,62 @@ class GameLogic:
 
     def process_accusation(self, accused_character, accused_weapon, accused_room):
         """
-        Process the player's accusation and provide feedback.
-
-    Args:
-        accused_character (str): Name of the character being accused.
-        accused_weapon (str): Name of the weapon being accused.
-        accused_room (str): Name of the room being accused.
-
-    Returns:
-        bool: True if the accusation matches the solution, False otherwise.
+        Inputs:
+        accused_character (str): The name of the character being accused.
+        accused_weapon (str): The name of the weapon being accused.
+        accused_room (str): The name of the room being accused.
+        Logic:
+        The method extracts the correct solution (character, weapon, and room) stored in the game.
+        Each part of the accusation (accused_character, accused_weapon, accused_room) is compared (case-insensitively) to the corresponding part of the solution.
+        If all three components match, the accusation is correct, and the method returns True.
+        If the accusation is incorrect, the method:
+        Constructs a feedback list describing which parts of the accusation are incorrect.
+        Prints detailed feedback for the player to use for future deductions.
         """
-        # Extract the solution components
         solution_character, solution_weapon, solution_room = self.solution
 
-        # Normalize accused and solution values to lowercase for comparison
-        accused = {
-            "character": accused_character.strip().lower(),
-            "weapon": accused_weapon.strip().lower(),
-            "room": accused_room.strip().lower(),
-        }
-
-        solution = {
-            "character": solution_character.name.strip().lower(),
-            "weapon": solution_weapon.name.strip().lower(),
-            "room": solution_room.name.strip().lower(),
-        }
-
         # Check if the accusation matches the solution
-        if accused == solution:
-            return True
+        if (
+            accused_character.lower() == solution_character.name.lower()
+            and accused_weapon.lower() == solution_weapon.name.lower()
+            and accused_room.lower() == solution_room.name.lower()
+        ):
+            return True  # Correct accusation
 
         # Provide feedback for incorrect accusation
-        print("Accusation incorrect. Here's your feedback:")
-        for key, value in accused.items():
-            status = "correct" if value == solution[key] else "incorrect"
-            print(f"- {key} is {status}.")
+        feedback = []
+        if accused_character.lower() != solution_character.name.lower():
+            feedback.append(f"Character '{accused_character}' is incorrect.")
+        if accused_weapon.lower() != solution_weapon.name.lower():
+            feedback.append(f"Weapon '{accused_weapon}' is incorrect.")
+        if accused_room.lower() != solution_room.name.lower():
+            feedback.append(f"Room '{accused_room}' is incorrect.")
+
+        print("Accusation incorrect. Feedback:")
+        for item in feedback:
+            print(item)
         return False
+
+
+class PlayerNotes:
+    """Tracks player notes, suggestions, and refutations."""
+    def __init__(self):
+        self.suggestions = []
+
+    def add_suggestion(self, character, weapon, room, refuted_by=None):
+        """Log a suggestion."""
+        self.suggestions.append({
+            "character": character,
+            "weapon": weapon,
+            "room": room,
+            "refuted_by": refuted_by
+        })
+
+    def view_notes(self):
+        """Display all recorded notes."""
+        print("\nPlayer Notes:")
+        for note in self.suggestions:
+            print(f"Suggested: {note['character']} with {note['weapon']} in {note['room']}")
+            if note["refuted_by"]:
+                print(f" - Refuted by {note['refuted_by']}")
+        print("\n")

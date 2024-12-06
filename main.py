@@ -1,13 +1,47 @@
 """
 This is the main module for the Cluedo game.
-
 It initializes the game, processes user inputs, and manages game actions such as moving, suggesting, and accusing.
+
+Features of the Code :
+Game Initialization:
+Rooms, characters, weapons, and the solution are initialized correctly, and connections between rooms are established.
+This section initializes:
+Rooms with connections.
+Characters with starting positions.
+Weapons without initial locations.
+The randomly selected solution.
+The game logic and player notes.
+
+The Game State section provides useful information about:
+The rooms and their connections.
+The characters and their current positions.
+The weapons and their locations.
+This makes it easy for the player to understand the game’s current state.
+
+Game Logic Integration:
+GameLogic is used to manage gameplay, including movement, suggestions, and accusations.
+PlayerNotes is initialized and used to log player suggestions.
+
+PlayerNotes Integration:
+Suggestions are logged into PlayerNotes when a suggestion is made
+Players can view their notes using the notes action
+
+Game Actions:
+The while loop handles all player actions effectively:
+Move: Manages movement between connected rooms and provides feedback for invalid moves.
+Suggest: Logs suggestions in PlayerNotes and handles refutations through make_suggestion.
+Accuse: Validates accusations against the solution and ends the game if correct.
+Quit: Exits the game gracefully.
+Notes: Displays logged suggestions for reference.Allows players to view logged suggestions.
 """
 from classes.room import Room
 from classes.character import Character
 from classes.weapon import Weapon
 from utils.random_selection import select_solution
-from game_logic import GameLogic
+from game_logic import GameLogic,PlayerNotes
+
+# Initialize PlayerNotes
+player_notes = PlayerNotes()
 
 # Initialize Rooms
 kitchen = Room("Kitchen")
@@ -85,7 +119,12 @@ while True:
         print(f"You are currently in {player.position}.")
         character_name = input("Enter the name of the character you suggest: ").strip()
         weapon_name = input("Enter the name of the weapon you suggest: ").strip()
-        print(game_logic.make_suggestion(player, character_name, weapon_name, player.position))
+        result = game_logic.make_suggestion(player, character_name, weapon_name, player.position)
+        print(result)
+
+        # Log the suggestion into PlayerNotes
+        player_notes.add_suggestion(character_name, weapon_name, player.position)
+
 
     elif action == "accuse":
         # Collect user inputs for the accusation
@@ -100,6 +139,10 @@ while True:
         print("Accusation incorrect. The mystery remains unsolved.")
         print("Game over. Try again next time!")
         break
+
+    elif action == "notes":
+        # Display player notes
+        player_notes.view_notes()
 
     elif action == "quit":
         # Exit the game
