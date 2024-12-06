@@ -37,7 +37,7 @@ def select_solution(characters, weapons, rooms, seed=None, reveal_solution=False
     logging.debug("Solution selected (hidden): %s, %s, %s", character.name, weapon.name, room.name)
 
     if reveal_solution:
-        print("DEBUG: The selected solution is:")
+        print("The mystery to solve :")
         print(f"Character: {character.name}")
         print(f"Weapon: {weapon.name}")
         print(f"Room: {room.name}")
