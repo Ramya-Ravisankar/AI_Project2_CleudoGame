@@ -106,6 +106,65 @@ class TestSuggestions(unittest.TestCase):
         self.assertEqual(solution_weapon, self.candlestick, "Solution weapon should not change.")
         self.assertEqual(solution_room, self.kitchen, "Solution room should not change.")
 
+    def test_valid_suggestion_no_refute(): # Test Valid Suggestion (No Refutation):
+        """
+        Purpose:
+        This test case verifies that the make_suggestion method behaves correctly when a
+        suggestion is made, and no other player has a card to refute it.
+        This test sets up a game state where:
+
+        A player (the suggesting player) is in a valid room for making a suggestion.
+        Other players do not hold any cards that match the suggested character, weapon, or room.
+        The test ensures that:
+
+        The suggestion is valid.
+        No refutation occurs because no player can match the suggested cards.
+        The output message correctly states that no one could refute the suggestion.
+        """
+        suggesting_player = Character("Miss Scarlett", "Kitchen")
+        suggesting_player.cards = []
+        player2 = Character("Colonel Mustard", "Library")
+        player2.cards = ["Ballroom"]
+
+        game_logic = GameLogic(
+            rooms=[Room("Kitchen"), Room("Ballroom")],
+            characters=[suggesting_player, player2],
+            weapons=[Weapon("Rope")],
+            solution=None
+        )
+
+        result = game_logic.make_suggestion(suggesting_player, "Colonel Mustard", "Rope", "Kitchen")
+        assert result == "Suggestion made: Colonel Mustard with the Rope in the Kitchen. No one could refute."
+
+    def test_valid_suggestion_with_refute(): # Test Valid Suggestion (Refutation):
+        """
+        Purpose:
+        This test case verifies that the make_suggestion method correctly handles scenarios w
+        here a suggestion is made, and another player has a card to refute it.
+        Description:
+        This test sets up a game state where:
+        A player (the suggesting player) is in a valid room for making a suggestion.
+        Another player holds a card that matches one of the suggested components (character, weapon, or room).
+        The test ensures that:
+
+        The suggestion is valid.
+        The first player who can refute the suggestion does so.
+        The output message correctly identifies the player who refuted the suggestion and the card they used.
+        """
+        suggesting_player = Character("Miss Scarlett", "Kitchen")
+        suggesting_player.cards = []
+        player2 = Character("Colonel Mustard", "Library")
+        player2.cards = ["Rope"]
+
+        game_logic = GameLogic(
+            rooms=[Room("Kitchen"), Room("Ballroom")],
+            characters=[suggesting_player, player2],
+            weapons=[Weapon("Rope")],
+            solution=None
+        )
+
+        result = game_logic.make_suggestion(suggesting_player, "Colonel Mustard", "Rope", "Kitchen")
+        assert result == "Suggestion refuted by Colonel Mustard with Rope."
 
 if __name__ == "__main__":
     unittest.main()
