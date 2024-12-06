@@ -3,6 +3,7 @@
 
 # Allow tracking of .gitignore itself
 !.gitignore
+!.pylintrc
 
 # Allow directories to be tracked
 !*/
