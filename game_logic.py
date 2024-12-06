@@ -122,27 +122,34 @@ If no players can refute the suggestion, a message is returned stating that no o
             return [connected_room.name for connected_room in room.connected_rooms]
         return []
 
-    def display_game_state(self):
-        """
-        Display the current state of the game for debugging purposes.
-        """
-        print("\nGame State:")
-        print("Characters:")
-        for char in self.characters:
-            print(f"- {char.name} is in {char.position}")
-        print("Weapons:")
-        for weap in self.weapons:
-            print(f"- {weap.name} is in {weap.location}")
-        print("Rooms:")
-        for room in self.rooms:
-            print(f"- {room.name} connects to {[r.name for r in room.connected_rooms]}")
+    def display_filtered_game_state(self, current_player):
+        """Display state relevant to the current player."""
+        print(f"\n{current_player.name}'s Current Room: {current_player.position}")
+        print("Nearby Rooms:")
+        for room in self.get_room_connections(current_player.position):
+            print(f"- {room}")
 
-    def process_accusation(self, accused_character, accused_weapon, accused_room):
+        print("\nCharacters in your room:")
+        for char in self.characters:
+            if char.position == current_player.position:
+                print(f"- {char.name}")
+
+        print("\nWeapons in your room:")
+        for weapon in self.weapons:
+            if weapon.location == current_player.position:
+                print(f"- {weapon.name}")
+
+
+    def process_accusation(self, accusing_character,accused_character, accused_weapon, accused_room):
         """
-        Inputs:
+        Process a player's accusation and provide feedback.
+
+        Args:
         accused_character (str): The name of the character being accused.
+        accusing_character (str): The name of the character making the accusation
         accused_weapon (str): The name of the weapon being accused.
         accused_room (str): The name of the room being accused.
+
         Logic:
         The method extracts the correct solution (character, weapon, and room) stored in the game.
         Each part of the accusation (accused_character, accused_weapon, accused_room) is compared (case-insensitively) to the corresponding part of the solution.
@@ -150,7 +157,16 @@ If no players can refute the suggestion, a message is returned stating that no o
         If the accusation is incorrect, the method:
         Constructs a feedback list describing which parts of the accusation are incorrect.
         Prints detailed feedback for the player to use for future deductions.
+
+        Returns:
+        bool: True if the accusation is correct (game ends), False otherwise.
         """
+        # Check for self-accusation
+        if accusing_character.lower() == accused_character.lower():
+            print(f"{accusing_character}, you cannot accuse yourself!")
+            return None
+
+        # Extract the solution components
         solution_character, solution_weapon, solution_room = self.solution
 
         # Check if the accusation matches the solution
@@ -159,7 +175,12 @@ If no players can refute the suggestion, a message is returned stating that no o
             and accused_weapon.lower() == solution_weapon.name.lower()
             and accused_room.lower() == solution_room.name.lower()
         ):
-            return True  # Correct accusation
+            return True  # Correct accusation;game ends
+
+        # Mark the player as having made an accusation
+        for player in self.characters:
+            if player.name.lower() == accusing_character.lower():
+                player.has_made_accusation = True
 
         # Provide feedback for incorrect accusation
         feedback = []
@@ -173,8 +194,8 @@ If no players can refute the suggestion, a message is returned stating that no o
         print("Accusation incorrect. Feedback:")
         for item in feedback:
             print(item)
-        return False
 
+        return False # Incorrect accusation
 
 class PlayerNotes:
     """Tracks player notes, suggestions, and refutations."""
@@ -198,3 +219,12 @@ class PlayerNotes:
             if note["refuted_by"]:
                 print(f" - Refuted by {note['refuted_by']}")
         print("\n")
+
+    def add_manual_entry(self, note):
+        """Add a manual note."""
+        self.suggestions.append({"manual_note": note})
+
+    def remove_manual_entry(self, note):
+        """Remove a manual note."""
+        self.suggestions = [n for n in self.suggestions if n.get("manual_note") != note]
+
