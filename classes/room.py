@@ -30,11 +30,11 @@ class Room:  # pylint: disable=too-few-public-methods
         return hash(self.name)
 
     def connect(self, room):
-        """
-        Connect this room to another room.
-        Args:
-            room (Room): The room to connect to this room.
-        """
+        """Establish a two-way connection between rooms."""
         if room not in self.connected_rooms:
             self.connected_rooms.append(room)
             room.connected_rooms.append(self)
+
+    def list_connections(self):
+        """Return a list of connected room names."""
+        return [room.name for room in self.connected_rooms]
