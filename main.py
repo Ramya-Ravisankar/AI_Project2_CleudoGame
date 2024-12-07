@@ -102,20 +102,31 @@ def skip_turn_if_restricted(player):
         return True
     return False
 
-while True:
-    game_logic.display_filtered_game_state(current_player)
+def validate_input(input_value, valid_options, input_type):
+    """
+    Validates if the input_value is in the list of valid_options.
+    """
+    if input_value.lower() in [option.lower() for option in valid_options]:
+        return True
+    else:
+        print(f"Invalid {input_type}. Please enter a valid {input_type}: {', '.join(valid_options)}.")
+        return False
 
+while True:
     # Notify the current player
     current_player = characters[current_turn]
     print(f"\n{current_player.name}, it's your turn!")
     print("\nOptions: move, suggest, accuse, notes, add_note, remove_note, quit")
+
+    game_logic.display_filtered_game_state(current_player)
+
     action = input("Choose an action: ").strip().lower()
 
-    if action in ["move", "accuse"] and skip_turn_if_restricted(current_player):
-        advance_turn()
-        continue
-
     if action == "move":
+        if current_player.has_made_accusation:
+            print(f"{current_player.name}, you cannot move after making an accusation.")
+            advance_turn()
+            continue
         # Handle player movement
         print(f"You are currently in {current_player.position}.")
         available_rooms = game_logic.get_room_connections(current_player.position)
@@ -126,16 +137,40 @@ while True:
             current_player.position = destination
             print(f"You moved to the {current_player.position}.")
         else:
-            print("Invalid move. You cannot go to that room from here.")
+            print(
+            f"Invalid move: The room '{destination}' is not connected to the '{current_player.position}'. "
+            f"Connected rooms are: {', '.join(available_rooms)}."
+            )
+        advance_turn()  # Ensure turn moves to the next player
+        continue
 
     elif action == "suggest":
+        # Handle suggestions
+        if current_player.has_made_accusation:
+            print(f"{current_player.name}, you cannot make a suggestion after making an accusation.")
+            advance_turn()
+            continue
+
         print(f"You are currently in {current_player.position}.")
+
+        # Validate character input
         character_name = input("Enter the name of the character you suggest: ").strip()
+        if not validate_input(character_name, [c.name for c in characters], "character"):
+            continue  # Skip to the next loop iteration if invalid
+
+        # Validate weapon input
         weapon_name = input("Enter the name of the weapon you suggest: ").strip()
+        if not validate_input(weapon_name, [w.name for w in weapons], "weapon"):
+            continue  # Skip to the next loop iteration if invalid
+
+        # Process suggestion
         result = game_logic.make_suggestion(current_player, character_name, weapon_name, current_player.position)
         print(result)
         # Log the suggestion into PlayerNotes
         player_notes.add_suggestion(character_name, weapon_name, current_player.position)
+        # Advance turn after suggestion
+        advance_turn()
+        continue
 
     elif action == "accuse":
         # Handle accusations
@@ -144,22 +179,34 @@ while True:
             advance_turn()
             continue
 
-        # Collect user inputs for the accusation
+        # Validate Character Input
         accused_character = input("Enter the name of the character you accuse: ").strip().lower()
+        if not validate_input(accused_character, [c.name for c in characters], "character"):
+            continue  # Skip to the next loop iteration if invalid
+
+        # Validate weapon Input
         accused_weapon = input("Enter the name of the weapon you accuse: ").strip().lower()
+        if not validate_input(accused_weapon, [w.name for w in weapons], "weapon"):
+            continue  # Skip to the next loop iteration if invalid
+
+        # Validate room input
         accused_room = input("Enter the name of the room you accuse: ").strip().lower()
+        if not validate_input(accused_room, [r.name for r in rooms], "room"):
+            continue  # Skip to the next loop iteration if invalid
 
         # Process accusation with self-check
         result = game_logic.process_accusation(current_player.name, accused_character, accused_weapon, accused_room)
-
         if result is None:  # Self-accusation detected
-            print(f"{current_player.name}, you accused yourself! Turn skipped.The Game continues")
-            advance_turn()
+            # This happens when process_accusation returns None for self-accusation
+            advance_turn()  # Skip the current player's turn
             continue
+        print(result)  # Print the feedback directly from `process_accusation`
 
-        if result:  # Correct accusation
-            print(f"Congratulations, {current_player.name}! You solved the mystery!")
-            break
+        if "Accusation correct" in result:
+            break  # End the game if the accusation is correct
+
+        advance_turn()  # Proceed to the next player's turn
+        continue
 
         # Mark the player as having made an accusation
         current_player.has_made_accusation = True
@@ -186,12 +233,12 @@ while True:
         characters.pop(current_turn)
         if not characters:
             print("All players have left. The game is over!")
-            break
+            break # End the game immediately
         current_turn %= len(characters)  # Ensure valid index for remaining players
+        print(f"\nIt's now {characters[current_turn].name}'s turn!")
         continue
 
     else:
         print("Invalid action. Please choose move, suggest, accuse, notes, or quit.")
+        advance_turn()
         continue
-
-    advance_turn()

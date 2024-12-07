@@ -57,8 +57,14 @@ If no players can refute the suggestion, a message is returned stating that no o
         """
         # Validate current room
         current_room = next((room for room in self.rooms if room.name == suggesting_player.position), None)
-        if current_room is None or current_room.name != room_name:
+        if current_room is None:
             return f"Invalid suggestion: You must be in the {room_name} to suggest it."
+
+        if current_room.name != room_name:
+            return (
+                f"Invalid suggestion: You are currently in the '{current_room.name}' "
+                f"and must be in the '{room_name}' to suggest it."
+            )
 
         # Find the suggested character and weapon
         suggested_character = next((char for char in self.characters if char.name == character_name), None)
@@ -86,11 +92,17 @@ If no players can refute the suggestion, a message is returned stating that no o
                 refutable_cards.append(room_name)
 
             if refutable_cards:  # If the player can refute
-                return f"Suggestion refuted by {player.name} with {refutable_cards[0]}."
+                refutation_card = refutable_cards[0]
+                return (
+                    f"Suggestion refuted by {player.name}."
+                    f"They showed the card: '{refutation_card}'."
+                )
 
         # No refutations found
-        return f"Suggestion made: {character_name} with the {weapon_name} in the {room_name}. No one could refute."
-
+        return (
+            f"Suggestion made: {character_name} with the {weapon_name} in the {room_name}."
+            "No one could refute."
+        )
     def check_solution(self, character_name, weapon_name, room_name):
         """
         Check if a player's accusation matches the solution.
@@ -123,21 +135,38 @@ If no players can refute the suggestion, a message is returned stating that no o
         return []
 
     def display_filtered_game_state(self, current_player):
-        """Display state relevant to the current player."""
-        print(f"\n{current_player.name}'s Current Room: {current_player.position}")
-        print("Nearby Rooms:")
-        for room in self.get_room_connections(current_player.position):
-            print(f"- {room}")
+        """
+        Display the game state relevant to the current player.
+        """
+        current_room = current_player.position
+        print(f"\nYou are currently in the {current_room}.")
 
-        print("\nCharacters in your room:")
-        for char in self.characters:
-            if char.position == current_player.position:
-                print(f"- {char.name}")
+        # Find the room object corresponding to the player's position
+        room_obj = next((room for room in self.rooms if room.name.lower() == current_room.lower()), None)
+        if not room_obj:
+            print("Error: Current room not found in the game state!")
+            return
 
-        print("\nWeapons in your room:")
-        for weapon in self.weapons:
-            if weapon.location == current_player.position:
-                print(f"- {weapon.name}")
+        # Display connected rooms
+        connected_rooms = room_obj.list_connections()
+        print(f"Connected rooms: {', '.join(connected_rooms)}")
+
+        # Display characters and weapons in the current room
+        characters_in_room = [char.name for char in self.characters if char.position.lower() == current_room.lower()]
+        weapons_in_room = [
+            weapon.name for weapon in self.weapons
+            if weapon.location and weapon.location.lower() == current_room.lower()
+            ]
+
+        if characters_in_room:
+            print(f"Characters in this room: {', '.join(characters_in_room)}")
+        else:
+            print("No characters are in this room.")
+
+        if weapons_in_room:
+            print(f"Weapons in this room: {', '.join(weapons_in_room)}")
+        else:
+            print("No weapons are in this room.")
 
 
     def process_accusation(self, accusing_character,accused_character, accused_weapon, accused_room):
@@ -175,7 +204,7 @@ If no players can refute the suggestion, a message is returned stating that no o
             and accused_weapon.lower() == solution_weapon.name.lower()
             and accused_room.lower() == solution_room.name.lower()
         ):
-            return True  # Correct accusation;game ends
+            return "Accusation correct! You've solved the mystery!"  # Return a descriptive string
 
         # Mark the player as having made an accusation
         for player in self.characters:
@@ -191,11 +220,8 @@ If no players can refute the suggestion, a message is returned stating that no o
         if accused_room.lower() != solution_room.name.lower():
             feedback.append(f"Room '{accused_room}' is incorrect.")
 
-        print("Accusation incorrect. Feedback:")
-        for item in feedback:
-            print(item)
-
-        return False # Incorrect accusation
+        feedback_message = "Accusation incorrect. Feedback:\n" + "\n".join(feedback)
+        return feedback_message
 
 class PlayerNotes:
     """Tracks player notes, suggestions, and refutations."""
