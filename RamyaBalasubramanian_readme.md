@@ -58,8 +58,11 @@ Clone the repository :
 9. How to Run the Tests:
    pytest -v <-runs the tests without pylint or coverage, enable verbose for more detailed output
 
-   pytest --pylint -v <- Runs tests with pylint static code analysis, Enable verbose for more detailed output [ OR ]
+   pytest --pylint -v <- Runs tests with pylint static code analysis, Enable verbose for more detailed output
+
    pytest --pylint --pylint-rcfile=pylintrc <-Runs tests with a custom Pylint configuration file that includes verbose settings.
+
+   pytest --pylint -v --cache-clear <-checks all files, including those that previously passed,so that it does not skip files
 
    pytest --pylint --cov -v <-Runs tests, pylint, and coverage to check if you have all your code tested.Enable verbose for more detailed output
 
