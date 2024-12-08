@@ -13,6 +13,7 @@ from classes.room import Room
 from classes.character import Character
 from classes.weapon import Weapon
 from game_logic import GameLogic
+from game_logic import PlayerNotes
 
 class TestGameLogic(unittest.TestCase):
     """
@@ -105,6 +106,14 @@ class TestGameLogic(unittest.TestCase):
         """
         connections = self.game_logic.get_room_connections("Ballroom")
         self.assertEqual(connections, [])
+
+    def test_add_custom_note(self):
+        """
+        Test adding a custom note to the PlayerNotes class.
+        """
+        player_notes = PlayerNotes()
+        player_notes.add_suggestion(custom_note="This is a custom note")
+        self.assertEqual(player_notes.suggestions, [{"custom_note": "This is a custom note"}])
 
 if __name__ == "__main__":
     unittest.main()

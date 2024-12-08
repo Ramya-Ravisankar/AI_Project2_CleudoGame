@@ -42,6 +42,8 @@ def parse_command(command):
             ),
 
         "notes": r"(view\s*)?notes",
+        "add_notes": r"add notes\s+(?P<content>.+)",
+        "remove_notes": r"remove notes\s+(?P<note_number>\d+)",
         "quit": r"quit\s*",
         "help": r"help"
     }
@@ -86,6 +88,16 @@ def display_room_connections(rooms):
 
 # Initialize PlayerNotes
 player_notes = PlayerNotes()
+
+# Example usage
+# Adding a game suggestion
+player_notes.add_suggestion("Scarlett", "Rope", "Library", refuted_by="Mustard")
+
+# Adding a custom note
+player_notes.add_suggestion(custom_note="This is a custom note.")
+
+# Viewing notes
+player_notes.view_notes()
 
 # Load Rooms Dynamically from JSON
 JSON_FILE = "data/rooms.json"
@@ -155,6 +167,8 @@ while True:
     print(" - Suggest a suspect: 'suggest Scarlett with Rope in Kitchen'")
     print(" - Accuse someone: 'accuse Mustard with Revolver in Library'")
     print(" - View notes: 'notes'")
+    print(" - Add notes: 'add notes <content>'")
+    print(" - Remove notes: 'remove notes <note number>'")
     print(" - Quit the game: 'quit'\n")
 
     game_logic.display_filtered_game_state(current_player)
@@ -259,6 +273,38 @@ while True:
         # suggestions and refutations.
         player_notes.view_notes()
 
+    elif parsed_action == "add_notes":
+        # Add a custom note to the player's notes.
+        # Args:
+        # content (str): The content of the note to add.
+        content = arguments.get("content")
+        if content:
+            player_notes.add_suggestion(custom_note=content)  # Example of storing the note
+            print(f"Note added: {content}")
+        else:
+            print("Invalid note. Use: 'add notes <content>' to add a meaningful note.")
+
+    elif parsed_action == "remove_notes":
+        # Remove a specific note from the player's notes by its number.
+        # Args:
+        # note_number (int): The index of the note to remove.
+        if not player_notes.suggestions:
+            print("No notes available to remove.")
+            continue
+
+        note_number = arguments.get("note_number")
+        if note_number is not None:
+            try:
+                note_number = int(note_number) - 1  # Convert to 0-based index
+                if note_number < 0:
+                    raise ValueError("Note number must be positive.")
+                removed_note = player_notes.suggestions.pop(note_number)
+                print(f"Successfully removed note: {removed_note}")
+            except (IndexError, ValueError):
+                print("Invalid note number. Please use 'remove notes <note number>' and check the note list.")
+        else:
+            print("Invalid command. Use: 'remove notes <note number>'")
+
     elif parsed_action == "quit":
         # Handles the player's decision to quit the game.
         # Removes the quitting player from the `characters` list. If all players quit, ends the game.
@@ -273,12 +319,13 @@ while True:
         continue
 
     elif parsed_action == "help":
-        # Displays a list of valid commands to help the player understand their options.
         print("\nValid commands:")
         print("- Move: 'move to Library', 'go Kitchen'")
         print("- Suggest: 'suggest Scarlett with Rope in Kitchen'")
         print("- Accuse: 'accuse Mustard with Revolver in Library'")
         print("- View notes: 'notes'")
+        print("- Add notes: 'add notes <content>'")
+        print("- Remove notes: 'remove notes <note number>'")
         print("- Quit the game: 'quit'\n")
 
     else:

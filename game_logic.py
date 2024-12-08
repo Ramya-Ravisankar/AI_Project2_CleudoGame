@@ -7,6 +7,8 @@ Key Classes:
 - PlayerNotes: Tracks and manages player notes, such as suggestions and refutations.
 - BayesianReasoner: Implements Bayesian reasoning to determine the most likely solution.
 """
+# pylint: disable=too-many-positional-arguments
+# pylint: disable=too-many-arguments
 
 def normalize_input(input_value):
     """
@@ -184,7 +186,8 @@ class PlayerNotes:
     Responsibilities:
     - Storing suggestions made by players.
     - Recording which player refuted a suggestion, if any.
-    - Displaying a summary of all suggestions for review.
+    - Storing custom notes for player reference.
+    - Displaying all notes for review.
 
     Attributes:
         suggestions (list[dict]): A list of suggestions with details about refutations.
@@ -200,7 +203,7 @@ class PlayerNotes:
         """
         self.suggestions = []
 
-    def add_suggestion(self, character, weapon, room, refuted_by=None):
+    def add_suggestion(self, character=None, weapon=None, room=None, refuted_by=None, custom_note=None):
         """
         Add a suggestion to the player's notes.
 
@@ -213,26 +216,35 @@ class PlayerNotes:
         Example:
             player_notes.add_suggestion("Scarlett", "Rope", "Library", refuted_by="Mustard")
         """
-        self.suggestions.append({
-            "character": character,
-            "weapon": weapon,
-            "room": room,
-            "refuted_by": refuted_by
+        if custom_note:
+            self.suggestions.append({"custom_note": custom_note})
+        else:
+            self.suggestions.append({
+                "character": character,
+                "weapon": weapon,
+                "room": room,
+                "refuted_by": refuted_by
         })
 
     def view_notes(self):
         """
-        Display all stored suggestions and their refutations, if any.
-
-        Prints a list of suggestions in the format:
-            - Suggested: <character> with <weapon> in <room>
-            - Refuted by: <refuted_by> (if applicable)
+            Display all stored suggestions and their refutations, if any.
+            Prints a list of suggestions and custom notes separately.
+            Custom notes are labeled as "Note", while suggestions display their details
+            (character, weapon, room) along with refutation information if available.
         """
         print("\nPlayer Notes:")
         for note in self.suggestions:
-            print(f"Suggested: {note['character']} with {note['weapon']} in {note['room']}")
-            if note["refuted_by"]:
-                print(f" - Refuted by {note['refuted_by']}")
+            if "custom_note" in note:
+                # Handle custom notes
+                print(f"Note: {note['custom_note']}")
+            else:
+                # Handle game suggestions
+                character = note["character"] if note["character"] else "Unknown character"
+                weapon = note["weapon"] if note["weapon"] else "Unknown weapon"
+                room = note["room"] if note["room"] else "Unknown room"
+                refuted_by = f" - Refuted by {note['refuted_by']}" if note["refuted_by"] else ""
+                print(f"Suggested: {character} with {weapon} in {room}{refuted_by}")
         print("\n")
 
 class BayesianReasoner:
