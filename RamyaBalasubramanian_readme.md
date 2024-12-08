@@ -1,7 +1,7 @@
-# Cluedo Game (Part 1)
+# Cluedo Game (PART 1 AND PART 2)
 
 ## Project Overview
-This is a command-line version of the Cluedo game. The objective is to randomly select a character, weapon, and room as the solution to the murder mystery. Players can move through different rooms, make suggestions, and try to solve the mystery.
+This is a command-line implementation of the Cluedo game. The goal is to uncover the mystery by deducing the randomly selected character, weapon, and room involved in the crime. Players navigate through various rooms, make suggestions, and attempt to solve the mystery.
 
 ## Project Structure
 RAMYABALASUBRAMANIAN_PROJECT2_SOURCECODE
@@ -13,7 +13,9 @@ RAMYABALASUBRAMANIAN_PROJECT2_SOURCECODE
 │   ├── weapon.py          # Weapon-related classes and logic│
 ├── utils/
 │   ├── random_selection.py # Logic for random solution selection
-│   └── movement.py        # Room navigation logic
+│   |── movement.py           # Room navigation logic
+    ├── random_selection.py # Logic for random solution selection
+│   └──
 ├── data/
 │   ├── rooms.json         # Mansion layout data
 │   └── characters.json    # Character and weapon definitions
@@ -22,6 +24,8 @@ RAMYABALASUBRAMANIAN_PROJECT2_SOURCECODE
 │   ├── test_bayesian.py   # Unit tests for Bayesian reasoning used by the AI player.
 │   ├── test_suggestions.py # Unit tests for validating the suggestion feature in the game.
 │   ├── test_accusations.py # Unit tests for handling accusations in the game.
+│   ├── test_player_notes.py # Unit tests for PlayerNotes in the game
+│   ├── test_game_logic.py # Unit tests for GameLogic in the game
 │
 │── RamyaBalasubramanian_readme.md  # Instructions for running the game
 
@@ -65,21 +69,34 @@ Clone the repository :
 
    pytest --pylint -v --cache-clear <-checks all files, including those that previously passed,so that it does not skip files
 
-   pytest --pylint --cov -v <-Runs tests, pylint, and coverage to check if you have all your code tested.Enable verbose for more detailed output
+   pylint main.py <- Example format , in case need to run individual files. Similarly can be run for all files
 
-10. Run the cleudo game:
-   - `python3 main.py`
-   - A random solution selection is displayed initially ( differs each time as its random)
-   - Input options available - follow the instructions and continue to play the game
-   - Post accusation, If the mystery is solved or not solved, game exits
+   pytest --cov=game_logic.py - <- Example format , in case need to run individual files. Similarly can be run for all files to know individual test case coverage
 
-## Dependencies
-- Required libraries (list in requirements.txt) - steps as above on how to install dependencies.
+   pytest --pylint --cov -v <-Runs tests, pylint, and for code coverage. Enable verbose for more detailed output
 
-## Game Flow
-1. The game starts by randomly selecting a character, weapon, and room as the solution.
-2. Players can move between rooms and make suggestions.
-3. The game displays messages on the actions taken by the players.
+
+10. Instructions to Run the cleudo game:
+   - NAVIGATE TO PROJECT DIRECTORY :
+   In the terminal ensure that the current working directory points to  RamyaBalasubramanian_Project2_SourceCode
+
+   - RUN THE GAME :
+   Execute the following command to start the game:- `python3 main.py`
+
+   - REVEALING THE MYSTERY :
+   At the start of the game, you will be prompted to choose whether the mystery solution (the murderer, weapon, and room) should be revealed. This is optional and varies each time, as the solution is randomly generated.
+
+   - INPUT OPTIONS AND COMMANDS :
+      Follow the on-screen instructions to provide input in the specified format
+      If an input does not match the expected format, it will be flagged as an "unknown command".
+      Regex patterns are implemented to handle inputs (e.g., case-insensitive commands).
+
+   - GAME PLAY FLOW
+      Players can make moves, suggest suspects, accuse someone, or manage notes during their turn.
+      The game ends either when the mystery is solved through a correct accusation or when all players quit.
+
+   - PLAYER NOTES :
+      Players can add or remove notes during the game to track suggestions, refutations, or any custom observations.
 
 ## Version Control:
     git
