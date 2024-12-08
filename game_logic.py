@@ -1,10 +1,12 @@
 """
-This module contains the GameLogic class, which manages the core mechanics of the game.
+This module contains the core logic for the Cluedo game, managing suggestions, accusations,
+and Bayesian reasoning to deduce the solution.
 
-The GameLogic class handles suggestions, accusations, and game state tracking.
+Key Classes:
+- GameLogic: Handles suggestions, accusations, and game state management.
+- PlayerNotes: Tracks and manages player notes, such as suggestions and refutations.
+- BayesianReasoner: Implements Bayesian reasoning to determine the most likely solution.
 """
-
-from collections import defaultdict
 
 def normalize_input(input_value):
     """
@@ -20,13 +22,20 @@ def normalize_input(input_value):
 
 class GameLogic:
     """
-    Manages the core mechanics of the game, including suggestions and accusations.
+    Manages the core mechanics of the Cluedo game, including handling suggestions,
+    accusations, and game state tracking.
+
+    Responsibilities:
+    - Validating and processing player suggestions.
+    - Handling accusations and providing feedback.
+    - Managing the movement and connections between rooms.
+    - Maintaining the state of characters, weapons, and rooms.
 
     Attributes:
-        rooms (list[Room]): List of rooms in the game.
-        characters (list[Character]): List of characters in the game.
-        weapons (list[Weapon]): List of weapons in the game.
-        solution (tuple): The correct combination of character, weapon, and room.
+        rooms (list[Room]): List of all rooms in the game.
+        characters (list[Character]): List of all characters in the game.
+        weapons (list[Weapon]): List of all weapons in the game.
+        solution (tuple): The correct solution (character, weapon, room).
     """
     def __init__(self, rooms, characters, weapons, solution):
         """
@@ -110,8 +119,9 @@ class GameLogic:
         :param accused_weapon: The name of the weapon being accused.
         :param accused_room: The name of the room being accused.
         """
-        print(f"Processing accusation: {accusing_character} accuses {accused_character} with {accused_weapon} in {accused_room}")
-
+        print(f"Processing accusation: {accusing_character} accuses {accused_character} "
+              f"with {accused_weapon} in {accused_room}"
+        )
         # Normalize inputs
         accused_character = normalize_input(accused_character)
         accused_weapon = normalize_input(accused_weapon)
@@ -168,10 +178,41 @@ class GameLogic:
         print(f"Connected rooms: {', '.join(connected_rooms)}")
 
 class PlayerNotes:
+    """
+    Tracks player notes, including suggestions and refutations, during the Cluedo game.
+
+    Responsibilities:
+    - Storing suggestions made by players.
+    - Recording which player refuted a suggestion, if any.
+    - Displaying a summary of all suggestions for review.
+
+    Attributes:
+        suggestions (list[dict]): A list of suggestions with details about refutations.
+    """
     def __init__(self):
+        """
+        Initialize the PlayerNotes object.
+
+        Attributes:
+            suggestions (list[dict]): Stores a list of dictionaries, where each dictionary
+                                      represents a suggestion with details like character, weapon,
+                                      room, and who refuted the suggestion (if any).
+        """
         self.suggestions = []
 
     def add_suggestion(self, character, weapon, room, refuted_by=None):
+        """
+        Add a suggestion to the player's notes.
+
+        Args:
+            character (str): The name of the suggested character.
+            weapon (str): The name of the suggested weapon.
+            room (str): The name of the suggested room.
+            refuted_by (str, optional): The name of the player who refuted the suggestion, if any.
+
+        Example:
+            player_notes.add_suggestion("Scarlett", "Rope", "Library", refuted_by="Mustard")
+        """
         self.suggestions.append({
             "character": character,
             "weapon": weapon,
@@ -180,6 +221,13 @@ class PlayerNotes:
         })
 
     def view_notes(self):
+        """
+        Display all stored suggestions and their refutations, if any.
+
+        Prints a list of suggestions in the format:
+            - Suggested: <character> with <weapon> in <room>
+            - Refuted by: <refuted_by> (if applicable)
+        """
         print("\nPlayer Notes:")
         for note in self.suggestions:
             print(f"Suggested: {note['character']} with {note['weapon']} in {note['room']}")
@@ -188,6 +236,18 @@ class PlayerNotes:
         print("\n")
 
 class BayesianReasoner:
+    """
+    Implements Bayesian reasoning to deduce the most likely solution to the Cluedo game.
+
+    Responsibilities:
+    - Maintains probabilities for all possible combinations of character, weapon, and room.
+    - Updates probabilities based on refutations or confirmations of suggestions.
+    - Provides the most likely combination based on current probabilities.
+
+    Attributes:
+        probabilities (dict): A dictionary mapping (character, weapon, room) combinations
+                              to their respective probabilities.
+    """
     def __init__(self, characters, weapons, rooms):
         """
         Initialize the Bayesian reasoner with uniform probabilities for all combinations.
@@ -237,4 +297,3 @@ class BayesianReasoner:
             tuple: The most likely (character, weapon, room).
         """
         return max(self.probabilities, key=self.probabilities.get)
-

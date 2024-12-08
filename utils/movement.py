@@ -1,88 +1,53 @@
-from collections import deque
+"""
+This module defines the `Room` class, which is used to represent rooms in the Cluedo game.
 
+Each room can be connected to other rooms, forming a graph-like structure that models
+the game map. The `Room` class provides methods for:
+- Establishing bidirectional connections between rooms.
+- Listing all rooms directly connected to a given room.
+
+This is a core utility for managing room navigation and gameplay mechanics.
+"""
 class Room:
+    """
+    Represents a room in the Cluedo game.
+
+    A `Room` object models a single room in the game map. Rooms can be connected
+    to other rooms, allowing players to navigate between them during gameplay.
+
+    Attributes:
+        name (str): The name of the room.
+        connected_rooms (list[Room]): A list of `Room` objects that are directly connected
+                                      to this room, forming a graph-like structure.
+    """
     def __init__(self, name):
         """
-        Initialize a Room object with a name and an empty list of connected rooms.
+            Initialize a Room object with a name and an empty list of connected rooms.
+
+            Args:
+                name (str): The name of the room (e.g., "Kitchen", "Library").
         """
         self.name = name
-        self.connected_rooms = []
+        self.connected_rooms = []  # List of connected Room objects
 
     def connect(self, other_room):
         """
-        Connect this room to another room.
+            Connect this room to another room, creating a bidirectional connection.
+
+            This method establishes a connection between the current room and another
+            room, allowing players to navigate between them.
+
+            Args:
+                other_room (Room): The room to connect to.
         """
         self.connected_rooms.append(other_room)
         other_room.connected_rooms.append(self)
 
     def list_connections(self):
         """
-        List names of all connected rooms.
+            List the names of all rooms directly connected to this room.
+
+            Returns:
+                list[str]: A list of names of rooms that are connected to this room.
         """
         return [room.name for room in self.connected_rooms]
-
-
-from collections import deque
-
-def find_path(start_room_name, end_room_name, rooms):
-    """
-    Find the shortest path between two rooms using BFS.
-
-    Args:
-        start_room_name (str): The name of the starting room.
-        end_room_name (str): The name of the destination room.
-        rooms (list[Room]): List of Room objects.
-
-    Returns:
-        list: The shortest path from start_room_name to end_room_name, or None if no path exists.
-    """
-    # Create a mapping of room names to Room objects
-    room_map = {room.name: room for room in rooms}
-
-    # Validate that the start and end rooms exist
-    if start_room_name not in room_map or end_room_name not in room_map:
-        return None
-
-    # Initialize the BFS queue with the starting room
-    queue = deque([(start_room_name, [start_room_name])])  # (current_room, path_so_far)
-    visited = set()  # To keep track of visited rooms
-
-    while queue:
-        current_room_name, path = queue.popleft()  # Dequeue the next room and path
-        if current_room_name in visited:
-            continue  # Skip already visited rooms
-
-        visited.add(current_room_name)  # Mark this room as visited
-
-        # If we reach the destination, return the path
-        if current_room_name == end_room_name:
-            return path
-
-        # Enqueue all connected (unvisited) rooms
-        current_room = room_map[current_room_name]
-        for neighbor in current_room.connected_rooms:
-            if neighbor.name not in visited:
-                queue.append((neighbor.name, path + [neighbor.name]))
-
-    return None  # If no path exists, return None
-
-# Example Usage
-if __name__ == "__main__":
-    # Create rooms
-    kitchen = Room("Kitchen")
-    ballroom = Room("Ballroom")
-    library = Room("Library")
-    study = Room("Study")
-
-    # Connect rooms
-    kitchen.connect(ballroom)
-    ballroom.connect(library)
-    library.connect(study)
-    study.connect(kitchen)  # Cyclic connection
-
-    # List of all rooms
-    rooms = [kitchen, ballroom, library, study]
-
-    # Find path
-    path = find_path("Kitchen", "Study", rooms)
-    print("Path from Kitchen to Study:", path)

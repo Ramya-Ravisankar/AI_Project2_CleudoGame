@@ -1,8 +1,27 @@
-[
-    {"name": "Kitchen", "connected_rooms": ["Ballroom"]},
-    {"name": "Ballroom", "connected_rooms": ["Kitchen", "Library"]},
-    {"name": "Library", "connected_rooms": ["Ballroom", "Study"]},
-    {"name": "Study", "connected_rooms": ["Library", "Hall"]},
-    {"name": "Hall", "connected_rooms": ["Study", "Conservatory"]},
-    {"name": "Conservatory", "connected_rooms": ["Hall"]}
-]
+{
+    "rooms": [
+        {
+            "name": "Kitchen",
+            "connections": [
+                {"to": "Ballroom"},
+                {"to": "Study"}
+            ]
+        },
+        {
+            "name": "Ballroom",
+            "connections": [
+                {"to": "Library"}
+            ]
+        },
+        {
+            "name": "Library",
+            "connections": [
+                {"to": "Study"}
+            ]
+        },
+        {
+            "name": "Study",
+            "connections": []
+        }
+    ]
+}
