@@ -1,12 +1,21 @@
+"""
+Unit tests for accusations logic in the Cluedo game.
+"""
+
 import unittest
 from classes.room import Room
 from classes.character import Character
 from classes.weapon import Weapon
 from game_logic import GameLogic
 
+
 class TestAccusationLogic(unittest.TestCase):
+    """
+    Unit tests for the accusation logic in the Cluedo game.
+    """
+
     def setUp(self):
-        """Set up game environment for testing accusations."""
+        """Set up the game environment for testing accusations."""
         # Initialize Rooms
         self.kitchen = Room("Kitchen")
         self.library = Room("Library")
@@ -27,18 +36,36 @@ class TestAccusationLogic(unittest.TestCase):
             rooms=[self.kitchen, self.library],
             characters=[self.scarlett, self.mustard],
             weapons=[self.candlestick, self.rope],
-            solution=self.solution
+            solution=self.solution,
         )
 
     def test_correct_accusation(self):
         """Test if a correct accusation ends the game."""
-        result = self.game_logic.process_accusation("Miss Scarlett", "Miss Scarlett", "Rope", "Kitchen")
-        self.assertTrue(result, "Accusation should be correct and end the game.")
+        result = self.game_logic.process_accusation(
+            accusing_character="Miss Scarlett",
+            accused_character="Miss Scarlett",
+            accused_weapon="Rope",
+            accused_room="Kitchen",
+        )
+        self.assertEqual(
+            result, "Accusation correct! You've solved the mystery!", "Correct accusation failed."
+        )
 
     def test_incorrect_accusation(self):
         """Test if an incorrect accusation provides feedback."""
-        result = self.game_logic.process_accusation("Miss Scarlett", "Colonel Mustard", "Candlestick", "Library")
-        self.assertFalse(result, "Accusation should be incorrect and provide feedback.")
+        result = self.game_logic.process_accusation(
+            accusing_character="Miss Scarlett",
+            accused_character="Colonel Mustard",
+            accused_weapon="Candlestick",
+            accused_room="Library",
+        )
+        self.assertIn(
+            "Accusation incorrect. Feedback:", result, "Incorrect accusation feedback is missing."
+        )
+        self.assertIn("Character 'colonel mustard' is incorrect.", result)
+        self.assertIn("Weapon 'candlestick' is incorrect.", result)
+        self.assertIn("Room 'library' is incorrect.", result)
+
 
 if __name__ == "__main__":
     unittest.main()

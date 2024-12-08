@@ -3,6 +3,21 @@ This module contains the GameLogic class, which manages the core mechanics of th
 
 The GameLogic class handles suggestions, accusations, and game state tracking.
 """
+
+from collections import defaultdict
+
+def normalize_input(input_value):
+    """
+    Normalize input by converting to lowercase and stripping spaces.
+
+    Args:
+        input_value (str): The input string to normalize.
+
+    Returns:
+        str: Normalized string.
+    """
+    return input_value.strip().lower()
+
 class GameLogic:
     """
     Manages the core mechanics of the game, including suggestions and accusations.
@@ -36,24 +51,6 @@ class GameLogic:
         :param weapon_name: Name of the weapon being suggested.
         :param room_name: Name of the room being suggested.
         :return: A message summarizing the result of the suggestion.
-
-        Room Validation:
-
-The code validates that the suggesting player is in the correct room (room_name), ensuring suggestions are only made from the player's current location.
-Character and Weapon Existence Check:
-
-Ensures the suggested character and weapon exist in the game, avoiding invalid suggestions.
-Character and Weapon Movement:
-
-Moves the suggested character and weapon to the suggested room (room_name), which is a requirement for game state consistency.
-Refutation Logic:
-
-Iterates over all players except the suggesting player to check if any of them can refute the suggestion.
-Each player's cards attribute is checked to see if they hold the suggested character, weapon, or room card.
-The first player who can refute does so, and the function returns immediately with the refutation details.
-Handles No Refutation:
-
-If no players can refute the suggestion, a message is returned stating that no one could refute.
         """
         # Validate current room
         current_room = next((room for room in self.rooms if room.name == suggesting_player.position), None)
@@ -94,33 +91,60 @@ If no players can refute the suggestion, a message is returned stating that no o
             if refutable_cards:  # If the player can refute
                 refutation_card = refutable_cards[0]
                 return (
-                    f"Suggestion refuted by {player.name}."
+                    f"Suggestion refuted by {player.name}. "
                     f"They showed the card: '{refutation_card}'."
                 )
 
         # No refutations found
         return (
-            f"Suggestion made: {character_name} with the {weapon_name} in the {room_name}."
+            f"Suggestion made: {character_name} with the {weapon_name} in the {room_name}. "
             "No one could refute."
         )
-    def check_solution(self, character_name, weapon_name, room_name):
-        """
-        Check if a player's accusation matches the solution.
 
-        :param character_name: Name of the character being accused.
-        :param weapon_name: Name of the weapon being accused.
-        :param room_name: Name of the room being accused.
-        :return: A message stating if the accusation is correct or not.
+    def process_accusation(self, accusing_character, accused_character, accused_weapon, accused_room):
         """
+        Process a player's accusation and provide feedback.
+
+        :param accusing_character: The name of the character making the accusation.
+        :param accused_character: The name of the character being accused.
+        :param accused_weapon: The name of the weapon being accused.
+        :param accused_room: The name of the room being accused.
+        """
+        print(f"Processing accusation: {accusing_character} accuses {accused_character} with {accused_weapon} in {accused_room}")
+
+        # Normalize inputs
+        accused_character = normalize_input(accused_character)
+        accused_weapon = normalize_input(accused_weapon)
+        accused_room = normalize_input(accused_room)
+
+        # Normalize solution data
         solution_character, solution_weapon, solution_room = self.solution
+        solution_character_name = normalize_input(solution_character.name)
+        solution_weapon_name = normalize_input(solution_weapon.name)
+        solution_room_name = normalize_input(solution_room.name)
 
+        # Prevent self-accusation
+        if normalize_input(accusing_character) == accused_character:
+            return f"{accusing_character}, you cannot accuse yourself!"
+
+        # Check if the accusation matches the solution
         if (
-            solution_character.name == character_name
-            and solution_weapon.name == weapon_name
-            and solution_room.name == room_name
+            accused_character == solution_character_name
+            and accused_weapon == solution_weapon_name
+            and accused_room == solution_room_name
         ):
-            return "Accusation correct! You've solved the murder!"
-        return "Accusation incorrect. The mystery remains unsolved."
+            return "Accusation correct! You've solved the mystery!"
+
+        # Provide feedback on incorrect accusation
+        feedback = []
+        if accused_character != solution_character_name:
+            feedback.append(f"Character '{accused_character}' is incorrect.")
+        if accused_weapon != solution_weapon_name:
+            feedback.append(f"Weapon '{accused_weapon}' is incorrect.")
+        if accused_room != solution_room_name:
+            feedback.append(f"Room '{accused_room}' is incorrect.")
+
+        return "Accusation incorrect. Feedback:\n" + "\n".join(feedback)
 
     def get_room_connections(self, room_name):
         """
@@ -140,96 +164,14 @@ If no players can refute the suggestion, a message is returned stating that no o
         """
         current_room = current_player.position
         print(f"\nYou are currently in the {current_room}.")
-
-        # Find the room object corresponding to the player's position
-        room_obj = next((room for room in self.rooms if room.name.lower() == current_room.lower()), None)
-        if not room_obj:
-            print("Error: Current room not found in the game state!")
-            return
-
-        # Display connected rooms
-        connected_rooms = room_obj.list_connections()
+        connected_rooms = self.get_room_connections(current_room)
         print(f"Connected rooms: {', '.join(connected_rooms)}")
 
-        # Display characters and weapons in the current room
-        characters_in_room = [char.name for char in self.characters if char.position.lower() == current_room.lower()]
-        weapons_in_room = [
-            weapon.name for weapon in self.weapons
-            if weapon.location and weapon.location.lower() == current_room.lower()
-            ]
-
-        if characters_in_room:
-            print(f"Characters in this room: {', '.join(characters_in_room)}")
-        else:
-            print("No characters are in this room.")
-
-        if weapons_in_room:
-            print(f"Weapons in this room: {', '.join(weapons_in_room)}")
-        else:
-            print("No weapons are in this room.")
-
-
-    def process_accusation(self, accusing_character,accused_character, accused_weapon, accused_room):
-        """
-        Process a player's accusation and provide feedback.
-
-        Args:
-        accused_character (str): The name of the character being accused.
-        accusing_character (str): The name of the character making the accusation
-        accused_weapon (str): The name of the weapon being accused.
-        accused_room (str): The name of the room being accused.
-
-        Logic:
-        The method extracts the correct solution (character, weapon, and room) stored in the game.
-        Each part of the accusation (accused_character, accused_weapon, accused_room) is compared (case-insensitively) to the corresponding part of the solution.
-        If all three components match, the accusation is correct, and the method returns True.
-        If the accusation is incorrect, the method:
-        Constructs a feedback list describing which parts of the accusation are incorrect.
-        Prints detailed feedback for the player to use for future deductions.
-
-        Returns:
-        bool: True if the accusation is correct (game ends), False otherwise.
-        """
-        # Check for self-accusation
-        if accusing_character.lower() == accused_character.lower():
-            print(f"{accusing_character}, you cannot accuse yourself!")
-            return None
-
-        # Extract the solution components
-        solution_character, solution_weapon, solution_room = self.solution
-
-        # Check if the accusation matches the solution
-        if (
-            accused_character.lower() == solution_character.name.lower()
-            and accused_weapon.lower() == solution_weapon.name.lower()
-            and accused_room.lower() == solution_room.name.lower()
-        ):
-            return "Accusation correct! You've solved the mystery!"  # Return a descriptive string
-
-        # Mark the player as having made an accusation
-        for player in self.characters:
-            if player.name.lower() == accusing_character.lower():
-                player.has_made_accusation = True
-
-        # Provide feedback for incorrect accusation
-        feedback = []
-        if accused_character.lower() != solution_character.name.lower():
-            feedback.append(f"Character '{accused_character}' is incorrect.")
-        if accused_weapon.lower() != solution_weapon.name.lower():
-            feedback.append(f"Weapon '{accused_weapon}' is incorrect.")
-        if accused_room.lower() != solution_room.name.lower():
-            feedback.append(f"Room '{accused_room}' is incorrect.")
-
-        feedback_message = "Accusation incorrect. Feedback:\n" + "\n".join(feedback)
-        return feedback_message
-
 class PlayerNotes:
-    """Tracks player notes, suggestions, and refutations."""
     def __init__(self):
         self.suggestions = []
 
     def add_suggestion(self, character, weapon, room, refuted_by=None):
-        """Log a suggestion."""
         self.suggestions.append({
             "character": character,
             "weapon": weapon,
@@ -238,7 +180,6 @@ class PlayerNotes:
         })
 
     def view_notes(self):
-        """Display all recorded notes."""
         print("\nPlayer Notes:")
         for note in self.suggestions:
             print(f"Suggested: {note['character']} with {note['weapon']} in {note['room']}")
@@ -246,11 +187,54 @@ class PlayerNotes:
                 print(f" - Refuted by {note['refuted_by']}")
         print("\n")
 
-    def add_manual_entry(self, note):
-        """Add a manual note."""
-        self.suggestions.append({"manual_note": note})
+class BayesianReasoner:
+    def __init__(self, characters, weapons, rooms):
+        """
+        Initialize the Bayesian reasoner with uniform probabilities for all combinations.
 
-    def remove_manual_entry(self, note):
-        """Remove a manual note."""
-        self.suggestions = [n for n in self.suggestions if n.get("manual_note") != note]
+        Args:
+            characters (list): List of characters.
+            weapons (list): List of weapons.
+            rooms (list): List of rooms.
+        """
+        self.probabilities = {
+            (c, w, r): 1 / (len(characters) * len(weapons) * len(rooms))
+            for c in characters
+            for w in weapons
+            for r in rooms
+        }
+
+    def update_probabilities(self, character, weapon, room, refuted):
+        """
+        Update the probabilities for a given suggestion based on whether it was refuted.
+
+        Args:
+            character (str): The suggested character.
+            weapon (str): The suggested weapon.
+            room (str): The suggested room.
+            refuted (bool): Whether the suggestion was refuted.
+        """
+        key = (character, weapon, room)
+        if key not in self.probabilities:
+            raise ValueError(f"Invalid combination: {key}")
+
+        # Adjust probabilities based on refutation
+        if refuted:
+            self.probabilities[key] *= 0.5  # Decrease likelihood
+        else:
+            self.probabilities[key] *= 2  # Increase likelihood
+
+        # Normalize probabilities to maintain a valid distribution
+        total = sum(self.probabilities.values())
+        for k in self.probabilities:
+            self.probabilities[k] /= total
+
+    def get_most_likely(self):
+        """
+        Get the combination with the highest likelihood.
+
+        Returns:
+            tuple: The most likely (character, weapon, room).
+        """
+        return max(self.probabilities, key=self.probabilities.get)
 

@@ -18,9 +18,12 @@ RAMYABALASUBRAMANIAN_PROJECT2_SOURCECODE
 │   ├── rooms.json         # Mansion layout data
 │   └── characters.json    # Character and weapon definitions
 ├── tests/
-│   ├── test_movement.py   # Unit tests for player movement
-│   └── test_suggestions.py # Unit tests for suggestions
-└── README.md              # Instructions for running the game
+│   ├── test_movement.py   # Unit tests for player movement logic in the game
+│   ├── test_bayesian.py   # Unit tests for Bayesian reasoning used by the AI player.
+│   ├── test_suggestions.py # Unit tests for validating the suggestion feature in the game.
+│   ├── test_accusations.py # Unit tests for handling accusations in the game.
+│
+│── RamyaBalasubramanian_readme.md  # Instructions for running the game
 
 ## Setup Instructions
 
@@ -42,7 +45,7 @@ Clone the repository :
    It's a good practice to create a fresh virtual environment for each project.
 
    virtualenv venv <- Makes a virtual environment in the venv directory
-   Activate the virtual environment using command <- source ./venv/bin/activate
+   source ./venv/bin/activate < - Activate the virtual environment
 
 6. Once the Virtual Environment is active, Install Dependencies using pip
    - pip3 install pytest pytest-pylint pytest-cov
@@ -63,7 +66,7 @@ Clone the repository :
 10. Run the cleudo game:
    - `python3 main.py`
    - A random solution selection is displayed initially ( differs each time as its random)
-   - Input options available - follow the instructions and continue to plau the game
+   - Input options available - follow the instructions and continue to play the game
    - Post accusation, If the mystery is solved or not solved, game exits
 
 ## Dependencies

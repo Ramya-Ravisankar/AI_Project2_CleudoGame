@@ -25,21 +25,18 @@ def select_solution(characters, weapons, rooms, seed=None, reveal_solution=False
     Returns:
         tuple: A tuple containing a randomly selected character, weapon, and room.
     """
-    if not characters or not weapons or not rooms:
-        raise ValueError("Characters, weapons, and rooms lists must not be empty.")
-
+    # Optional: Set the seed for reproducibility (useful for tests)
     if seed is not None:
         random.seed(seed)
 
+    # Randomly select one of each type
     character = random.choice(characters)
     weapon = random.choice(weapons)
     room = random.choice(rooms)
-    logging.debug("Solution selected (hidden): %s, %s, %s", character.name, weapon.name, room.name)
 
     if reveal_solution:
-        print("The mystery to solve :")
-        print(f"Character: {character.name}")
-        print(f"Weapon: {weapon.name}")
-        print(f"Room: {room.name}")
+        logging.debug("Solution selected (revealed): %s, %s, %s", character.name, weapon.name, room.name)
+    else:
+        logging.debug("Solution selected (hidden).")
 
-    return (character, weapon, room)
+    return character, weapon, room

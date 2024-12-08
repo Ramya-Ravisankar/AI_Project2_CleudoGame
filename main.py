@@ -1,51 +1,52 @@
 """
 This is the main module for the Cluedo game.
 It initializes the game, processes user inputs, and manages game actions such as moving, suggesting, and accusing.
-
-Features of the Code :
-Game Initialization:
-Rooms, characters, weapons, and the solution are initialized correctly, and connections between rooms are established.
-This section initializes:
-Rooms with connections.
-Characters with starting positions.
-Weapons without initial locations.
-The randomly selected solution.
-The game logic and player notes.
-
-The Game State section provides useful information about:
-The rooms and their connections.
-The characters and their current positions.
-The weapons and their locations.
-This makes it easy for the player to understand the game’s current state.
-
-Game Logic Integration:
-GameLogic is used to manage gameplay, including movement, suggestions, and accusations.
-PlayerNotes is initialized and used to log player suggestions.
-
-PlayerNotes Integration:
-Suggestions are logged into PlayerNotes when a suggestion is made
-Players can view their notes using the notes action
-
-Game Actions:
-The while loop handles all player actions effectively:
-Move: Manages movement between connected rooms and provides feedback for invalid moves.
-Suggest: Logs suggestions in PlayerNotes and handles refutations through make_suggestion.
-Accuse: Validates accusations against the solution and ends the game if correct.
-Quit: Exits the game gracefully.
-Notes: Displays logged suggestions for reference.Allows players to view logged suggestions.
-
-current_turn Tracker:
-Tracks the index of the current player in the characters list.
-Ensures only the player whose turn it is can perform actions,Updates current_turn at the end of each valid action
-All actions (move, suggest, accuse, quit) are restricted to the current player.
-If a player makes an incorrect accusation or quits, they are removed from the characters list:
-If all players are eliminated or quit, game terminates
 """
+import re
+import difflib
 from classes.room import Room
 from classes.character import Character
 from classes.weapon import Weapon
 from utils.random_selection import select_solution
-from game_logic import GameLogic,PlayerNotes
+from game_logic import GameLogic, PlayerNotes
+
+
+def parse_command(command):
+    """
+    Parse the player's command using regex patterns.
+    """
+    patterns = {
+        "move": r"(move|go|travel)\s*(to)?\s+(?P<room>\w+(\s+\w+)*)",
+        "suggest": r"suggest\s+(?P<character>\w+(\s+\w+)*)\s*(with)?\s+(?P<weapon>\w+(\s+\w+)*)\s*(in)?\s+(?P<room>\w+(\s+\w+)*)",
+        "accuse": r"accuse\s+(?P<character>\w+(\s+\w+)*)\s+with\s+(?P<weapon>\w+(\s+\w+)*)\s+in\s+(?P<room>\w+(\s+\w+)*)",
+        "notes": r"(view\s*)?notes",
+        "quit": r"quit\s*",
+        "help": r"help"
+    }
+
+    for action, pattern in patterns.items():
+        match = re.match(pattern, command, re.IGNORECASE)
+        if match:
+            return action, match.groupdict()
+
+    return "unknown", {}
+
+
+def correct_input(input_value, valid_options):
+    """
+    Suggest or correct the input_value against a list of valid options.
+    Args:
+        input_value (str): The player's input.
+        valid_options (list): List of valid strings to match against.
+
+    Returns:
+        str: Closest match if found, else the original input.
+    """
+    matches = difflib.get_close_matches(input_value.lower(), [v.lower() for v in valid_options], n=1, cutoff=0.6)
+    if matches:
+        return next((option for option in valid_options if option.lower() == matches[0]), input_value)
+    return input_value  # If no match, return the input as is
+
 
 # Initialize PlayerNotes
 player_notes = PlayerNotes()
@@ -79,6 +80,11 @@ weapons = [
 
 # Select Solution
 solution = select_solution(characters, weapons, rooms, reveal_solution=True)
+reveal_solution = True
+
+if reveal_solution:
+    print("\nThe solution is:")
+    print(f"Character: {solution[0].name}, Weapon: {solution[1].name}, Room: {solution[2].name}\n")
 
 # Initialize GameLogic
 game_logic = GameLogic(rooms, characters, weapons, solution)
@@ -95,127 +101,88 @@ def advance_turn():
     global current_turn
     current_turn = (current_turn + 1) % len(characters)
 
-def skip_turn_if_restricted(player):
-    """Skip the player's turn if they have made an accusation."""
-    if player.has_made_accusation:
-        print(f"{player.name}, you cannot make any moves or accusations as you have already made an accusation.")
-        return True
-    return False
-
-def validate_input(input_value, valid_options, input_type):
-    """
-    Validates if the input_value is in the list of valid_options.
-    """
-    if input_value.lower() in [option.lower() for option in valid_options]:
-        return True
-    else:
-        print(f"Invalid {input_type}. Please enter a valid {input_type}: {', '.join(valid_options)}.")
-        return False
 
 while True:
-    # Notify the current player
     current_player = characters[current_turn]
+
+    # Human player's turn
     print(f"\n{current_player.name}, it's your turn!")
-    print("\nOptions: move, suggest, accuse, notes, add_note, remove_note, quit")
+    print("\nOptions:")
+    print(" - Move to a room: 'move to Library' or 'go Kitchen'")
+    print(" - Suggest a suspect: 'suggest Scarlett with Rope in Kitchen'")
+    print(" - Accuse someone: 'accuse Mustard with Revolver in Library'")
+    print(" - View notes: 'notes'")
+    print(" - Quit the game: 'quit'\n")
 
     game_logic.display_filtered_game_state(current_player)
 
-    action = input("Choose an action: ").strip().lower()
+    # Get the player's raw input
+    raw_command = input("Enter your command: ").strip()
+
+    # Parse the command
+    action, arguments = parse_command(raw_command)
 
     if action == "move":
-        if current_player.has_made_accusation:
-            print(f"{current_player.name}, you cannot move after making an accusation.")
-            advance_turn()
-            continue
-        # Handle player movement
-        print(f"You are currently in {current_player.position}.")
-        available_rooms = game_logic.get_room_connections(current_player.position)
-        print(f"Rooms you can move to: {', '.join(room.lower() for room in available_rooms)}")
-        destination = input("Enter the room you want to move to: ").strip()
+        room = arguments.get("room")  # Extract room name
+        room = correct_input(room, [r.name for r in rooms])  # Spell-check room name
 
-        if destination.lower() in [room.lower() for room in available_rooms]:
-            current_player.position = destination
-            print(f"You moved to the {current_player.position}.")
+        if room.lower() == current_player.position.lower():
+            print(f"You are already in the {current_player.position}. No need to move!")
+        elif room.lower() not in [r.name.lower() for r in rooms]:
+            print(f"The room '{room}' does not exist. Please check the room name and try again.")
         else:
-            print(
-            f"Invalid move: The room '{destination}' is not connected to the '{current_player.position}'. "
-            f"Connected rooms are: {', '.join(available_rooms)}."
-            )
-        advance_turn()  # Ensure turn moves to the next player
-        continue
+            available_rooms = game_logic.get_room_connections(current_player.position)
+            if room.lower() in [r.lower() for r in available_rooms]:
+                current_player.position = room
+                print(f"You moved to the {current_player.position}.")
+            else:
+                print(
+                    f"Invalid move: The room '{room}' is not connected to the '{current_player.position}'. "
+                    f"Connected rooms are: {', '.join(available_rooms)}."
+                )
+        advance_turn()
 
     elif action == "suggest":
-        # Handle suggestions
-        if current_player.has_made_accusation:
-            print(f"{current_player.name}, you cannot make a suggestion after making an accusation.")
-            advance_turn()
+        character = arguments.get("character")  # Extract character name
+        weapon = arguments.get("weapon")        # Extract weapon name
+        room = arguments.get("room")            # Extract room name
+
+        # Apply fuzzy matching for inputs
+        character = correct_input(character, [c.name for c in characters])
+        weapon = correct_input(weapon, [w.name for w in weapons])
+        room = correct_input(room, [r.name for r in rooms])
+
+        if not character or not weapon or not room:
+            print("Invalid suggestion. Example format: suggest Scarlett with Rope in Kitchen.")
             continue
 
-        print(f"You are currently in {current_player.position}.")
-
-        # Validate character input
-        character_name = input("Enter the name of the character you suggest: ").strip()
-        if not validate_input(character_name, [c.name for c in characters], "character"):
-            continue  # Skip to the next loop iteration if invalid
-
-        # Validate weapon input
-        weapon_name = input("Enter the name of the weapon you suggest: ").strip()
-        if not validate_input(weapon_name, [w.name for w in weapons], "weapon"):
-            continue  # Skip to the next loop iteration if invalid
-
-        # Process suggestion
-        result = game_logic.make_suggestion(current_player, character_name, weapon_name, current_player.position)
+        result = game_logic.make_suggestion(current_player, character, weapon, current_player.position)
         print(result)
-        # Log the suggestion into PlayerNotes
-        player_notes.add_suggestion(character_name, weapon_name, current_player.position)
-        # Advance turn after suggestion
+        player_notes.add_suggestion(character, weapon, current_player.position)
         advance_turn()
-        continue
 
     elif action == "accuse":
-        # Handle accusations
-        if current_player.has_made_accusation:
-            print(f"{current_player.name}, you have already made an accusation and cannot accuse again.")
-            advance_turn()
+        character = arguments.get("character")  # Extract character name
+        weapon = arguments.get("weapon")        # Extract weapon name
+        room = arguments.get("room")            # Extract room name
+
+        # Apply fuzzy matching for inputs
+        character = correct_input(character, [c.name for c in characters])
+        weapon = correct_input(weapon, [w.name for w in weapons])
+        room = correct_input(room, [r.name for r in rooms])
+
+        if not character or not weapon or not room:
+            print("Invalid accusation. Example format: accuse Mustard with Revolver in Library.")
             continue
 
-        # Validate Character Input
-        accused_character = input("Enter the name of the character you accuse: ").strip().lower()
-        if not validate_input(accused_character, [c.name for c in characters], "character"):
-            continue  # Skip to the next loop iteration if invalid
-
-        # Validate weapon Input
-        accused_weapon = input("Enter the name of the weapon you accuse: ").strip().lower()
-        if not validate_input(accused_weapon, [w.name for w in weapons], "weapon"):
-            continue  # Skip to the next loop iteration if invalid
-
-        # Validate room input
-        accused_room = input("Enter the name of the room you accuse: ").strip().lower()
-        if not validate_input(accused_room, [r.name for r in rooms], "room"):
-            continue  # Skip to the next loop iteration if invalid
-
-        # Process accusation with self-check
-        result = game_logic.process_accusation(current_player.name, accused_character, accused_weapon, accused_room)
-        if result is None:  # Self-accusation detected
-            # This happens when process_accusation returns None for self-accusation
-            advance_turn()  # Skip the current player's turn
-            continue
-        print(result)  # Print the feedback directly from `process_accusation`
-
+        result = game_logic.process_accusation(current_player.name, character, weapon, room)
+        print(result)
         if "Accusation correct" in result:
             break  # End the game if the accusation is correct
 
-        advance_turn()  # Proceed to the next player's turn
-        continue
-
-        # Mark the player as having made an accusation
-        current_player.has_made_accusation = True
-        print(f"Accusation incorrect. {current_player.name}, you cannot make further moves or accusations.")
         advance_turn()
-        continue
 
     elif action == "notes":
-        # Display player notes
         player_notes.view_notes()
 
     elif action == "add_note":
@@ -231,14 +198,21 @@ while True:
     elif action == "quit":
         print(f"{current_player.name} has quit the game.")
         characters.pop(current_turn)
-        if not characters:
+
+        if len(characters) == 0:
             print("All players have left. The game is over!")
-            break # End the game immediately
-        current_turn %= len(characters)  # Ensure valid index for remaining players
-        print(f"\nIt's now {characters[current_turn].name}'s turn!")
+            break
+
+        current_turn %= len(characters)
         continue
 
+    elif action == "help":
+        print("\nValid commands:")
+        print("- Move: 'move to Library', 'go Kitchen'")
+        print("- Suggest: 'suggest Scarlett with Rope in Kitchen'")
+        print("- Accuse: 'accuse Mustard with Revolver in Library'")
+        print("- View notes: 'notes'")
+        print("- Quit the game: 'quit'\n")
+
     else:
-        print("Invalid action. Please choose move, suggest, accuse, notes, or quit.")
-        advance_turn()
-        continue
+        print("Unknown command. Try again.")
