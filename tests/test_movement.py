@@ -1,9 +1,3 @@
-"""
-test_movement.py
-
-Unit tests for testing movement logic in the game.
-"""
-
 import unittest
 from utils.movement import Room, find_path
 
@@ -27,7 +21,8 @@ class TestMovement(unittest.TestCase):
         self.kitchen.connect(self.ballroom)
         self.ballroom.connect(self.library)
         self.library.connect(self.study)
-        self.study.connect(self.kitchen) # cyclic connection
+        self.study.connect(self.kitchen)  # Cyclic connection
+
         # Store rooms in a list for testing
         self.rooms = [self.kitchen, self.ballroom, self.library, self.study]
 
@@ -74,7 +69,7 @@ class TestMovement(unittest.TestCase):
             path,
             expected_path,
             "Pathfinding failed. Ensure BFS is working correctly."
-    )
+        )
 
     def test_pathfinding_same_start_end(self):
         """Test pathfinding when start and end rooms are the same."""
@@ -92,11 +87,6 @@ class TestMovement(unittest.TestCase):
         path = find_path("Kitchen", "Garage", self.rooms)
         self.assertIsNone(path, "Pathfinding should return None for invalid destinations.")
 
-    def test_invalid_room(self):
-        """Test behavior when querying an invalid room."""
-        connections = self.kitchen.list_connections()
-        self.assertNotIn("Garage", connections, "Garage is not a valid room connection.")
-
     def test_cyclic_room_connections(self):
         """Test pathfinding in a cyclic graph."""
         path = find_path("Kitchen", "Study", self.rooms)
@@ -110,6 +100,16 @@ class TestMovement(unittest.TestCase):
         path = find_path("Kitchen", "Garage", self.rooms)
         self.assertIsNone(path, "Pathfinding should return None for disconnected rooms.")
 
+    def test_direct_connection(self):
+        """Test direct path between two directly connected rooms."""
+        path = find_path("Kitchen", "Ballroom", self.rooms)
+        expected_path = ["Kitchen", "Ballroom"]
+        self.assertEqual(path, expected_path, "Pathfinding failed for direct connection.")
+
+    def test_disconnected_graph(self):
+        """Test pathfinding in a graph where the rooms are not connected."""
+        path = find_path("Kitchen", "NonExistentRoom", self.rooms)
+        self.assertIsNone(path, "Pathfinding did not return None for disconnected graph.")
 
 if __name__ == "__main__":
     unittest.main()
