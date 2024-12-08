@@ -89,16 +89,6 @@ def display_room_connections(rooms):
 # Initialize PlayerNotes
 player_notes = PlayerNotes()
 
-# Example usage
-# Adding a game suggestion
-player_notes.add_suggestion("Scarlett", "Rope", "Library", refuted_by="Mustard")
-
-# Adding a custom note
-player_notes.add_suggestion(custom_note="This is a custom note.")
-
-# Viewing notes
-player_notes.view_notes()
-
 # Load Rooms Dynamically from JSON
 JSON_FILE = "data/rooms.json"
 loaded_rooms = load_rooms_from_json(JSON_FILE)
