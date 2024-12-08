@@ -49,6 +49,7 @@ Clone the repository :
 
 6. Once the Virtual Environment is active, Install Dependencies using pip
    - pip3 install pytest pytest-pylint pytest-cov
+   - pip3 install pytest-pylint
 
 7. Once we have the libraries installed we need to freeze the requirements and create our
    requirments.txt file - pip3 freeze > requirements.txt
